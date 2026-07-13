@@ -1,0 +1,75 @@
+{% extends 'attendance/base.html' %}
+{% block title %}Scan QR{% endblock %}
+{% block content %}
+<div class="card" style="text-align:center;">
+    <h2>Scan Attendance QR Code</h2>
+    <p class="muted">Point your camera at the QR code displayed by your lecturer.</p>
+    <div id="reader" style="width:100%; max-width:400px; margin:0 auto;"></div>
+    <p id="result-msg" style="font-weight:600; margin-top:16px;"></p>
+    <a href="{% url 'dashboard' %}" class="btn" style="background:#6b7280;">Back to Dashboard</a>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<script>
+    const resultMsg = document.getElementById('result-msg');
+    let scanning = true;
+
+    function getCsrfToken() {
+        const match = document.cookie.match(/csrftoken=([^;]+)/);
+        return match ? match[1] : '';
+    }
+
+    function getLocation() {
+        return new Promise((resolve) => {
+            if (!navigator.geolocation) return resolve('');
+            navigator.geolocation.getCurrentPosition(
+                pos => resolve(`${pos.coords.latitude},${pos.coords.longitude}`),
+                () => resolve(''),
+                { timeout: 3000 }
+            );
+        });
+    }
+
+    async function onScanSuccess(decodedText) {
+        if (!scanning) return;
+        scanning = false;
+
+        const gps = await getLocation();
+
+        fetch("{% url 'mark_attendance' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+            },
+            body: JSON.stringify({ token: decodedText, gps: gps }),
+        })
+        .then(res => res.json().then(data => ({ status: res.status, data })))
+        .then(({ status, data }) => {
+            if (data.ok) {
+                resultMsg.style.color = '#16a34a';
+                resultMsg.textContent = '✅ ' + data.message;
+            } else {
+                resultMsg.style.color = '#dc2626';
+                resultMsg.textContent = '❌ ' + data.error;
+                setTimeout(() => { scanning = true; }, 2000); // allow retry
+            }
+        })
+        .catch(() => {
+            resultMsg.style.color = '#dc2626';
+            resultMsg.textContent = '❌ Network error. Try again.';
+            scanning = true;
+        });
+    }
+
+    const html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        onScanSuccess
+    ).catch(err => {
+        resultMsg.style.color = '#dc2626';
+        resultMsg.textContent = 'Camera access failed: ' + err;
+    });
+</script>
+{% endblock %}

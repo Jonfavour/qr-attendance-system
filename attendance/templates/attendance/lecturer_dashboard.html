@@ -1,0 +1,30 @@
+{% extends 'attendance/base.html' %}
+{% block title %}Lecturer Dashboard{% endblock %}
+{% block content %}
+<div class="card">
+    <h3>Add New Course</h3>
+    <form method="post" action="{% url 'add_course' %}">
+        {% csrf_token %}
+        <input type="text" name="lecturer_name" placeholder="Lecturer Name" value="{{ user.get_full_name }}">
+        <input type="text" name="course_code" placeholder="Course Code (e.g. CSC401)" required>
+        <input type="text" name="title" placeholder="Course Title (e.g. Software Engineering)" required>
+        <input type="text" name="department" placeholder="Department (optional)">
+        <button type="submit" class="btn">Create Course</button>
+    </form>
+</div>
+
+<h2>My Courses</h2>
+{% for course in courses %}
+<div class="card">
+    <h3>{{ course.course_code }} — {{ course.title }}</h3>
+    <p class="muted">Lecturer: {{ course.lecturer.get_full_name }} &middot; {{ course.enrollments.count }} student(s) enrolled</p>
+    <form method="post" action="{% url 'start_session' course.id %}">
+        {% csrf_token %}
+        <input type="text" name="venue" placeholder="Venue (optional, e.g. LT1)">
+        <button type="submit" class="btn btn-success">Start Session &amp; Generate QR</button>
+    </form>
+</div>
+{% empty %}
+<div class="card"><p>No courses assigned yet. Contact admin to be added as a course lecturer.</p></div>
+{% endfor %}
+{% endblock %}

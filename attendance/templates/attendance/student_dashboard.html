@@ -1,0 +1,66 @@
+{% extends 'attendance/base.html' %}
+{% block title %}Student Dashboard{% endblock %}
+{% block content %}
+<div class="card" style="text-align:center;">
+    <h2>Welcome, {{ user.get_full_name }}</h2>
+    <p class="muted">{{ user.matric_no }}</p>
+    <a href="{% url 'scan_page' %}" class="btn btn-success" style="font-size:1.1rem; padding:14px 28px;">📷 Scan Attendance QR</a>
+</div>
+
+<div class="card">
+    <h3>My Registered Courses</h3>
+    <table>
+        <thead><tr><th>Code</th><th>Title</th></tr></thead>
+        <tbody>
+        {% for e in enrollments %}
+            <tr><td>{{ e.course.course_code }}</td><td>{{ e.course.title }}</td></tr>
+        {% empty %}
+            <tr><td colspan="2">Not registered for any courses yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3>Available Courses</h3>
+    <p class="muted">Register for a course to be able to scan its attendance QR code.</p>
+    <table>
+        <thead><tr><th>Code</th><th>Title</th><th>Lecturer</th><th></th></tr></thead>
+        <tbody>
+        {% for course in available_courses %}
+            <tr>
+                <td>{{ course.course_code }}</td>
+                <td>{{ course.title }}</td>
+                <td>{{ course.lecturer.get_full_name }}</td>
+                <td>
+                    <form method="post" action="{% url 'enroll_course' course.id %}" style="margin:0;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success" style="padding:6px 12px; font-size:0.85rem;">Register</button>
+                    </form>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="4">No new courses available — you're registered for all existing courses.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3>Recent Attendance</h3>
+    <table>
+        <thead><tr><th>Course</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for r in recent_attendance %}
+            <tr>
+                <td>{{ r.session.course.course_code }}</td>
+                <td>{{ r.timestamp|date:"d M, H:i" }}</td>
+                <td><span class="badge badge-success">{{ r.get_status_display }}</span></td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="3">No attendance records yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

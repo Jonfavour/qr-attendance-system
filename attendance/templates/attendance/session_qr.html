@@ -1,0 +1,34 @@
+{% extends 'attendance/base.html' %}
+{% block title %}Session QR{% endblock %}
+{% block content %}
+<div class="card" style="text-align:center;">
+    <h2>{{ session.course.course_code }}</h2>
+    <p class="muted">{{ session.venue }} &middot; Started {{ session.created_at|time:"H:i" }}</p>
+
+    <img src="{% url 'qr_image' session.id %}" alt="Attendance QR Code" style="width:280px; height:280px; margin: 16px 0;">
+
+    <p>Expires at <strong>{{ session.expires_at|time:"H:i" }}</strong></p>
+    <p id="status">Students marked present: <strong id="count">0</strong></p>
+    <p id="expired-msg" style="color:#dc2626; display:none;">This QR code has expired.</p>
+
+    <a href="{% url 'session_detail' session.id %}" class="btn">View Attendance List</a>
+    <a href="{% url 'dashboard' %}" class="btn" style="background:#6b7280;">Back to Courses</a>
+</div>
+
+<script>
+    const sessionId = {{ session.id }};
+    function poll() {
+        fetch(`/session/${sessionId}/status/`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('count').textContent = data.count;
+                if (data.expired) {
+                    document.getElementById('expired-msg').style.display = 'block';
+                } else {
+                    setTimeout(poll, 3000);
+                }
+            });
+    }
+    poll();
+</script>
+{% endblock %}

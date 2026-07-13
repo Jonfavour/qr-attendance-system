@@ -1,0 +1,20 @@
+{% extends 'attendance/base.html' %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<div class="card" style="max-width:420px; margin: 40px auto;">
+    <h2>Student Registration</h2>
+    <p class="muted">Create your account using your matric number.</p>
+    <form method="post">
+        {% csrf_token %}
+        <input type="text" name="matric_no" placeholder="Matric Number (e.g. AIFCE/CSC/21/004)" value="{{ matric_no|default:'' }}" required>
+        <input type="text" name="first_name" placeholder="First Name" value="{{ first_name|default:'' }}" required>
+        <input type="text" name="last_name" placeholder="Last Name" value="{{ last_name|default:'' }}" required>
+        <input type="text" name="department" placeholder="Department" value="{{ department|default:'' }}">
+        <input type="text" name="level" placeholder="Level (e.g. 400)" value="{{ level|default:'' }}">
+        <input type="password" name="password" placeholder="Password (min. 6 characters)" required>
+        <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+        <button type="submit" class="btn" style="width:100%;">Create Account</button>
+    </form>
+    <p class="muted">Already have an account? <a href="{% url 'login' %}">Login here</a>.</p>
+</div>
+{% endblock %}

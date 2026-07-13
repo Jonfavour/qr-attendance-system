@@ -1,0 +1,25 @@
+{% extends 'attendance/base.html' %}
+{% block title %}Attendance List{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>{{ session.course.course_code }} — {{ session.created_at|date:"d M Y, H:i" }}</h2>
+    <p class="muted">{{ records|length }} student(s) recorded</p>
+    <a href="{% url 'export_attendance_csv' session.id %}" class="btn">Export CSV</a>
+
+    <table>
+        <thead><tr><th>Matric No</th><th>Name</th><th>Time</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for r in records %}
+            <tr>
+                <td>{{ r.student.matric_no }}</td>
+                <td>{{ r.student.get_full_name }}</td>
+                <td>{{ r.timestamp|time:"H:i:s" }}</td>
+                <td><span class="badge badge-success">{{ r.get_status_display }}</span></td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="4">No attendance recorded yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
